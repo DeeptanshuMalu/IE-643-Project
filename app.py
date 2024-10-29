@@ -67,9 +67,17 @@ def get_openai_response(prompt):
         messages=[
             {
                 "role": "system",
-                "content": """You are a helpful assistant. Correct the input latex code to make it valid. Only return the corrected code. The returned code should be enclosed in a pair of $. For example, if the input is "x^2", the output should be "$x^2$". """,
+                "content": """You are a helpful assistant. Your task is to correct the input LaTeX code to make it valid and compilable.
+                            The input may contain both mathematical and non-mathematical text. Please ensure the output is corrected for both types
+                            and that all elements are formatted correctly in LaTeX. Return only the corrected LaTeX code and nothing else.
+                            Do not include any extra commands such as documentclass, begin, or end document. Exclude all additional comments, 
+                            explanations, and any other text. The original transcription is: """
+                + st.session_state.transcription,
             },
-            {"role": "user", "content": prompt},
+            {
+                "role": "user",
+                "content": prompt,
+            },
         ],
     )
     return response.choices[0].message.content
@@ -78,10 +86,10 @@ def get_openai_response(prompt):
 def compile_latex_to_pdf(latex_code):
 
     latex_content = f"""
+    
             \\documentclass{{article}}
+            \\usepackage[top=1cm]{{geometry}}
             \\begin{{document}}
-
-            Hello, this is a sample LaTeX document!
             {latex_code}
             \\end{{document}}
         """
@@ -93,9 +101,11 @@ def compile_latex_to_pdf(latex_code):
         f.write(latex_content)
 
     # Compile the LaTeX file into a PDF
-    subprocess.run(
-        ["pdflatex", "-output-directory", "latex", tex_file], check=True, cwd="latex"
-    )
+    with st.spinner("Compiling LaTeX to PDF..."):
+        subprocess.run(
+            ["pdflatex", "-output-directory", "latex", tex_file],
+            check=True,
+        )
 
     # Path to the resulting PDF
     pdf_path = "latex/document.pdf"
@@ -103,7 +113,7 @@ def compile_latex_to_pdf(latex_code):
     # Return PDF data
     with open(pdf_path, "rb") as pdf_file:
         base64_pdf = base64.b64encode(pdf_file.read()).decode("utf-8")
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="500" type="application/pdf">'
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="200" type="application/pdf">'
         st.markdown(pdf_display, unsafe_allow_html=True)
 
 
@@ -148,18 +158,20 @@ with st.container(border=True):
             label="Transcription", value=st.session_state.transcription
         )
 
-        if st.button("Convert to LaTeX"):
+        if st.button("Generate LaTeX"):
             with st.spinner("Generating LaTeX..."):
                 st.session_state.latex = st.session_state.pipe_model(
                     st.session_state.transcription
                 )[0]["generated_text"]
 
-        if st.session_state.get("latex"):
-            st.text_input("LaTeX before API", value=st.session_state.latex)
+            if st.session_state.get("latex"):
+                st.text_input("LaTeX before API", value=st.session_state.latex)
 
-            if st.button("Send to API"):
                 with st.spinner("Sending to API..."):
-                    response = get_openai_response(st.session_state.latex)
+                    st.session_state.response = get_openai_response(
+                        st.session_state.latex
+                    )
 
-                st.text_input("LaTeX after API", value=response)
-                compile_latex_to_pdf(response)
+                st.text_input("LaTeX after API", value=st.session_state.response)
+
+                compile_latex_to_pdf(st.session_state.response)
