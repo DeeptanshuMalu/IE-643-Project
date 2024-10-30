@@ -1,7 +1,5 @@
 import base64
-from pathlib import Path
 import subprocess
-import tempfile
 import streamlit as st
 from pydub import AudioSegment
 import io
@@ -9,14 +7,13 @@ import os
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 import openai
+from TeXBLEU.new_metric import texbleu
+
+st.set_page_config(page_title="IE643 NeuroTwins Demo", layout="wide")
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Remove the file if it exists
 filename = "recorded_audio.wav"
-if os.path.exists(filename):
-    os.remove(filename)
-
 
 def init_pipe():
     if "pipe_whisper" not in st.session_state:
@@ -86,11 +83,11 @@ def get_openai_response(prompt):
 def compile_latex_to_pdf(latex_code):
 
     latex_content = f"""
-    
-            \\documentclass{{article}}
-            \\usepackage[top=1cm]{{geometry}}
+            \\documentclass{{extarticle}}
+            \\usepackage[top=2cm]{{geometry}}
+            \\usepackage{{moresize}}
             \\begin{{document}}
-            {latex_code}
+            {{\\HUGE {latex_code}}}
             \\end{{document}}
         """
 
@@ -113,13 +110,14 @@ def compile_latex_to_pdf(latex_code):
     # Return PDF data
     with open(pdf_path, "rb") as pdf_file:
         base64_pdf = base64.b64encode(pdf_file.read()).decode("utf-8")
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="200" type="application/pdf">'
-        st.markdown(pdf_display, unsafe_allow_html=True)
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="400" type="application/pdf">'
+        c2.markdown(pdf_display, unsafe_allow_html=True)
 
 
 init_pipe()
 
 st.title("IE643 NeuroTwins Demo")
+
 
 with st.container(border=True):
     audio_option = st.selectbox("Give audio input", ["Upload", "Record"])
@@ -153,25 +151,31 @@ with st.container(border=True):
     if st.button("Transcribe"):
         st.session_state.transcription = get_transcription()
 
+    c1, c2 = st.columns(2)
     if st.session_state.get("transcription"):
-        st.session_state.transcription = st.text_input(
+        st.session_state.transcription = c1.text_input(
             label="Transcription", value=st.session_state.transcription
         )
+        reference = c1.text_input("Give reference LaTeX", value="")
 
-        if st.button("Generate LaTeX"):
+        if c1.button("Generate LaTeX"):
             with st.spinner("Generating LaTeX..."):
                 st.session_state.latex = st.session_state.pipe_model(
                     st.session_state.transcription
                 )[0]["generated_text"]
 
             if st.session_state.get("latex"):
-                st.text_input("LaTeX before API", value=st.session_state.latex)
+                c1.text_input("LaTeX before API", value=st.session_state.latex)
 
                 with st.spinner("Sending to API..."):
                     st.session_state.response = get_openai_response(
                         st.session_state.latex
                     )
 
-                st.text_input("LaTeX after API", value=st.session_state.response)
+                c1.text_input("LaTeX after API", value=st.session_state.response)
 
                 compile_latex_to_pdf(st.session_state.response)
+
+                if reference:
+                    texbleu_score = texbleu(st.session_state.response, reference)
+                    st.write(f"TeXBLEU score: {texbleu_score}")
