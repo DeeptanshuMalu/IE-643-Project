@@ -15,6 +15,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 filename = "recorded_audio.wav"
 
+
 def init_pipe():
     if "pipe_whisper" not in st.session_state:
         with st.spinner("Loading whisper..."):
@@ -164,18 +165,19 @@ with st.container(border=True):
                     st.session_state.transcription
                 )[0]["generated_text"]
 
-            if st.session_state.get("latex"):
-                c1.text_input("LaTeX before API", value=st.session_state.latex)
+        if st.session_state.get("latex"):
+            c1.text_input("LaTeX before API", value=st.session_state.latex)
 
-                with st.spinner("Sending to API..."):
-                    st.session_state.response = get_openai_response(
-                        st.session_state.latex
-                    )
+            with st.spinner("Sending to API..."):
+                st.session_state.response = get_openai_response(st.session_state.latex)
 
-                c1.text_input("LaTeX after API", value=st.session_state.response)
+            st.session_state.response = c1.text_input(
+                "LaTeX after API", value=st.session_state.response
+            )
 
+            if c1.button("Compile LaTeX to PDF"):
                 compile_latex_to_pdf(st.session_state.response)
 
-                if reference:
-                    texbleu_score = texbleu(st.session_state.response, reference)
-                    st.write(f"TeXBLEU score: {texbleu_score}")
+            if reference:
+                texbleu_score = texbleu(st.session_state.response, reference)
+                st.write(f"TeXBLEU score: {texbleu_score}")
