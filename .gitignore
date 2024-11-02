@@ -1,3 +1,7 @@
-*.pdf
+Documents/
+latex/
 *.mp4
 *.pptx
+*.wav
+speech/
+__pycache__/
