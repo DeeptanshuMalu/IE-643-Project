@@ -1,4 +1,4 @@
-# IE643 NeuroTwins Demo
+# IE643 NeuroTwins Project
 
 This project is a demonstration of the IE643 NeuroTwins application, which transcribes audio input into LaTeX code, corrects it using OpenAI's GPT-4o-mini model, and compiles it into a PDF. Below is a description of each file in the project:
 
