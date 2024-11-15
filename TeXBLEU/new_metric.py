@@ -20,9 +20,9 @@ def load_models_and_tokenizer():
     # 새로운 임베딩 로드 (필요한 경우)
     try:
         if device == 'cuda':
-            new_embeddings_state = torch.load('new_embeddings.pth')
+            new_embeddings_state = torch.load('TeXBLEU/new_embeddings.pth')
         else:
-            new_embeddings_state = torch.load('new_embeddings.pth', map_location=torch.device('cpu'))
+            new_embeddings_state = torch.load('TeXBLEU/new_embeddings.pth', map_location=torch.device('cpu'))
 
         new_vocab_size, embedding_dim = new_embeddings_state['weight'].shape
         new_embeddings = torch.nn.Embedding(new_vocab_size, embedding_dim).to(device)

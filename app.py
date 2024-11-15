@@ -65,7 +65,7 @@ def get_openai_response(prompt):
         messages=[
             {
                 "role": "system",
-                "content": """You are a helpful assistant. Your task is to correct the input LaTeX code to make it valid and compilable.
+                "content": """You are a helpful assistant. Your task is to correct the input LaTeX code to make it valid and compilable and put \[ and \] around the math mode.
                             The input may contain both mathematical and non-mathematical text. Please ensure the output is corrected for both types
                             and that all elements are formatted correctly in LaTeX. Return only the corrected LaTeX code and nothing else.
                             Do not include any extra commands such as documentclass, begin, or end document. Exclude all additional comments, 
@@ -85,12 +85,15 @@ def compile_latex_to_pdf(latex_code):
 
     latex_content = f"""
             \\documentclass{{extarticle}}
-            \\usepackage[top=2cm]{{geometry}}
+            \\usepackage[left=1cm, top=2cm]{{geometry}}
             \\usepackage{{moresize}}
+            \\usepackage{{amsmath}}
+            \\usepackage{{amssymb}}
             \\begin{{document}}
             {{\\HUGE {latex_code}}}
             \\end{{document}}
         """
+    print(latex_code)
 
     tex_file = "latex/document.tex"
 
