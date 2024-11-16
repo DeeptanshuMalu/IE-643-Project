@@ -1,0 +1,57 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "math_bridge",
+  "dataset_size": 2227248622,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/Kyudan/MathBridge@353fb2255f6959ad2940865346c38689cfce902a/train.parquet": {
+      "num_bytes": 967903703,
+      "checksum": null
+    }
+  },
+  "download_size": 967903703,
+  "features": {
+    "context_before": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "equation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "context_after": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "spoken_English": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 3195152325,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 2227248622,
+      "num_examples": 23195831,
+      "shard_lengths": [
+        5242880,
+        5242880,
+        5242880,
+        7340032,
+        127159
+      ],
+      "dataset_name": "math_bridge"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
